@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { View, Text, Button } from 'react-native';
+import { View, Text, Button, Pressable, StyleSheet } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 
@@ -10,11 +10,11 @@ const AuthContext = React.createContext();
 function HomeScreen() {
   const { signIn } = React.useContext(AuthContext);
   return (
-    <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
+    <View style={styles.container}>
       <Text>Login</Text>
-      <Button title="다음화면으로" onPress={()=> {
-        signIn()
-      }} />
+      <Pressable style={styles.button} onPress={()=>signIn()}>
+      <Text style={styles.text}>{"Login"}</Text>
+    </Pressable>
     </View>
   );
 }
@@ -22,11 +22,10 @@ function HomeScreen() {
 function DetailsScreen() {
   const {signOut} = React.useContext(AuthContext);
   return (
-    <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
-      <Text>Details Screen</Text>
-      <Button title="돌아가기" onPress={()=> {
-        signOut()
-      }}></Button>
+    <View style={styles.container}>
+    <Pressable style={styles.button} onPress={()=>signOut()}>
+      <Text style={styles.text}>{"Log Out"}</Text>
+    </Pressable>
     </View>
   );
 }
@@ -97,5 +96,31 @@ function App({ navigation }) {
       </AuthContext.Provider>
   );
 }
+
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: "#fff",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  button: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    height:30,
+    width:120,
+    borderRadius: 8,
+    elevation: 3,
+    backgroundColor: 'black',
+  },
+  text: {
+    fontSize: 16,
+    lineHeight: 21,
+    fontWeight: 'bold',
+    letterSpacing: 0.25,
+    color: 'white',
+  },
+});
 
 export default App;
