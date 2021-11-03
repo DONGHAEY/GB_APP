@@ -128,7 +128,7 @@ app.post("/GB/logout", (req, res) => {
 })
 
 app.post("/GB/add", (req, res) => {
-    let today = new Date();   
+    let today = new Date();
     //이 mac adress가 상품 DB에 등록되어있는지도 확인 할 수 있다면 확인하기
   let year = today.getFullYear(); // 년도
   let month = today.getMonth() + 1;  // 월
@@ -200,21 +200,34 @@ app.post("/GB/MachineList", (req, res)=> {
   })
 })
 
-app.post("/GB/valueList", (req, res) => {
+app.post("/GB/valueList", (req, res) => { //이 기계가 있는지부터 확인하기
   const macadress = req.body.macadress;
-  let command = `SELECT * FROM gb_history WHERE macadress = '${macadress}'`
-  con.query(command, (err, list) => {
-    if(err) err = null;
-    else if (list[0]) {
-        res.json({
-            list : list
+  let command = `SELECT * FROM gb WHERE macadress = '${macadress}'`
+   con.query(command, (err, plantInfo) => {
+     if(err) err = null;
+     let command1 = `SELECT * FROM gb_history WHERE macadress = '${macadress}'`
+     con.query(command1, (err, list) => {
+       if(err) err = null;
+       let plantcode = plantInfo[0].plantcode
+       let command2 = `SELECT * FROM plant WHERE plantcode = ${plantcode}`
+       con.query(command2, (err, pc) => {
+         if(err) err = null;
+         else if (list[0]) {
+          res.json({
+              list : list,
+              plantInfo:pc[0]
+            })
+            console.log(pc);
+        } else {
+          res.json({
+              list : false
           })
-    } else {
-        res.json({
-            list : false
-        })
-    }
-  })
+       }
+     })
+       })
+
+       
+   })
 });
 
 app.listen(5000, () => {

@@ -127,9 +127,10 @@ function DetailsScreen() {
   }
 
   const Connect = ({ navigation }) => {
-
+    const [name, setName] = React.useState("loading")
     const [humidity, setHumidity] = React.useState(0)
     const [num, setNum] = React.useState(0)
+    const[img, setImg] = React.useState("")
     let macadress = "";
     let MachineList;
     let history;
@@ -140,6 +141,8 @@ function DetailsScreen() {
             macadress = MachineList[num].macadress;
             axios.post(`http://211.216.92.115:5000/GB/valueList`, {macadress : macadress}).then(res => {
             history = res.data.list;
+            setImg(res.data.plantInfo.img_url)
+            setName(res.data.plantInfo.name)
             setHumidity(history[history.length-1].huminity)
             navigation.setOptions({ title: `Machine ${num+1}`})
           })
@@ -154,10 +157,10 @@ function DetailsScreen() {
         <Image
         style={styles.tinyLogo}
         source={{
-          uri: 'https://www.urbanbrush.net/web/wp-content/uploads/edd/2018/10/urbanbrush-20181022055401589335.png',
+          uri: img,
         }}
       />
-        <Text style={{fontSize:35, fontWeight:"bold"}}>상추가 잘</Text>
+        <Text style={{fontSize:35, fontWeight:"bold"}}>{`${name}가`}</Text>
         <Text style={{fontSize:35, fontWeight:"bold"}}>자라고 있어요!!</Text>
         <Text style={{fontSize:20, fontWeight:"bold"}}>{`온도:30°C, 습도:${humidity}%, 광량:30`}</Text>
         <Pressable style={styles.button} onPress={() => {
