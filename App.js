@@ -1,10 +1,15 @@
 import * as React from 'react';
-import { View, Text, TextInput, Pressable, StyleSheet, Image, Button, Alert } from 'react-native';
+import { View, Text, TextInput, Pressable, StyleSheet, Image, Button, Alert, SafeAreaView, StatusBar } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import MaterialCommunityIcons from "react-native-vector-icons/MaterialCommunityIcons";
+// import * as Permissions from 'expo-permissions';
 import axios from "axios"
+import { WebView } from 'react-native-webview';
+import member from './reducer/member'
+import styles from './Component/style'
+import CButton from "./CButton";
 
 const Stack = createStackNavigator();
 
@@ -12,54 +17,7 @@ const Tab = createBottomTabNavigator();
 
 const AuthContext = React.createContext();
 
-let Custommer_name = "";
-
-const SignUp = () => {
-  const [id, setId] = React.useState("id")
-  const [password, setpassword] = React.useState("pplk")
-  const [name, setname] = React.useState("abcd")
-  const [nickname, setnickname] = React.useState("abcd")
-  return (
-<View style={styles.container}>
-      <Text style={styles.logo}>회원가입</Text>
-      <TextInput
-        style={styles.input}
-        placeholder="아이디"
-        onChange={setId}
-        value={id}
-      />
-            <TextInput
-        style={styles.input}
-        placeholder="비밀번호"
-        secureTextEntry={true}
-        onChange={setpassword}
-        value={password}
-      />
-                  <TextInput
-        style={styles.input}
-        placeholder="이름"
-        onChange={setname}
-        value={name}
-      />
-                        <TextInput
-        style={styles.input}
-        placeholder="닉네임"
-        onChange={setnickname}
-        value={nickname}
-      />
-
-      <Pressable style={styles.button} onPress={() => {
-        axios.post("http://211.216.92.115:5000/GB/register", {id, password, name, nickname});
-      }}>
-      <Text style={styles.text}>{"다음으로"}</Text>
-    </Pressable>
-    
-    </View>
-  ) 
-}
-
 function HomeScreen() {
-
   const [id, setId] = React.useState("")
   const [pw, setPw] = React.useState("")
   
@@ -81,11 +39,7 @@ function HomeScreen() {
         value={pw}
         secureTextEntry={true}
       />
-      <Text style={{fontSize:10, color:"#D2DABA"}} onPress={()=> {
-        return (
-          <SignUp name="SignUp"/>
-        )
-      }}>회원가입 및 비밀번호 찾기</Text>
+      <Text style={{fontSize:10, color:"#D2DABA"}}>회원가입 및 비밀번호 찾기</Text>
       <Pressable style={styles.button} onPress={()=>signIn({id, pw})}>
       <Text style={styles.text}>{"로그인"}</Text>
     </Pressable>
@@ -94,11 +48,25 @@ function HomeScreen() {
 }
 
 function DetailsScreen() {
+  const [Name, SetName] = React.useState("")
   const MainPage = () => {
     const { logout } = React.useContext(AuthContext);
+    axios.post("http://211.216.92.115:5000/GB/auth").then(res => {
+      if(res.data.isAuth === true) {
+        SetName(res.data.client.name) 
+      } else {
+        logout();
+      }
+    })
     return (
       <View style={styles.container}>
-        <Text>{`${Custommer_name}님 어서오세요`}</Text>
+      <Image
+        style={{width:130, height:130, borderRadius:100, marginBottom:10}}
+        source={{
+          uri: "https://prodigits.co.uk/thumbs2/mobilium/wallpapers/p2/2012/fcelebs/640x960/9vybozl1.jpg",
+        }}
+      />
+        <Text style={{marginBottom:5}}>{`${Name}님 어서오세요`}</Text>
         <Button title="로그아웃" onPress={()=> {
           logout();
         }}></Button>
@@ -106,23 +74,13 @@ function DetailsScreen() {
     )
   }
   const Setting = ()=> {
-    const [mi, setMi] = React.useState("")
+    // Permissions.askAsync(Permissions.CAMERA);
     return (
-      <View style={styles.container}>
-        <Text style={{fontSize:40, fontWeight:"bold", }}>기기를</Text>
-        <Text style={{fontSize:40, marginBottom:30, fontWeight:"bold"}}>등록하기</Text>
-        <TextInput
-        style={styles.input}
-        placeholder="기기 토큰"
-        onChange={setMi}
-        value={mi}
+      <WebView
+        useWebKit
+        allowsInlineMediaPlayback
+        source={{ uri: 'https://gitplant.netlify.app/' }}
       />
-    <Pressable style={styles.button} onPress={()=> {
-          alert(`${mi}를 보냈습니다`)
-        }}>
-      <Text style={styles.text} >{"다음으로"}</Text>
-    </Pressable>
-  </View>
     )
   }
 
@@ -130,12 +88,12 @@ function DetailsScreen() {
     const [name, setName] = React.useState("loading")
     const [humidity, setHumidity] = React.useState(0)
     const [num, setNum] = React.useState(0)
-    const[img, setImg] = React.useState("")
+    const[img, setImg] = React.useState("https://mblogthumb-phinf.pstatic.net/MjAxODEwMjNfNjAg/MDAxNTQwMjg2OTk2NTcw.mfWKPtzKVO1mJaBBIFKIkVBlMQQIF1Vc-yrlbbGaoP0g.KNJWAgMmhsfQrZI3n0UT-LMi_qpHAZls4qPMvbNaJBcg.GIF.chingguhl/Spinner-1s-200px.gif?type=w800")
     let macadress = "";
     let MachineList;
     let history;
     React.useEffect(() => {
-      const ppl = () => {
+      const bootstrapAsync = async () => {
         axios.post(`http://211.216.92.115:5000/GB/MachineList`).then((res) => {
             MachineList = res.data.list;
             macadress = MachineList[num].macadress;
@@ -148,7 +106,7 @@ function DetailsScreen() {
           })
         });
       };
-      ppl();
+      bootstrapAsync()
     }); //repeat code
     
     
@@ -160,12 +118,17 @@ function DetailsScreen() {
           uri: img,
         }}
       />
-        <Text style={{fontSize:35, fontWeight:"bold"}}>{`${name}가`}</Text>
+        <View style={styles.parent}>
+          <CButton text={"<"} onPress={() => {
+          setNum(num+1);
+        }}/>
+          <Text>                                                                          </Text>
+          <CButton text={">"} />
+        </View>
+        <Text style={{fontSize:35, fontWeight:"bold", marginTop:0}}>{`${name}가`}</Text>
         <Text style={{fontSize:35, fontWeight:"bold"}}>자라고 있어요!!</Text>
         <Text style={{fontSize:20, fontWeight:"bold"}}>{`온도:30°C, 습도:${humidity}%, 광량:30`}</Text>
-        <Pressable style={styles.button} onPress={() => {
-          setNum(num+1);
-        }}>
+        <Pressable style={styles.button}>
       <Text style={styles.text}>{"자세히 보기"}</Text>
     </Pressable>
       </View>
@@ -213,44 +176,19 @@ function DetailsScreen() {
 
 
 function App({ navigation }) {
-
   let link = "http://211.216.92.115:5000"
-
-
-  const [state, dispatch] = React.useReducer(
-    (prevState, action) => {
-      switch (action.type) {
-        case "RESTORE_TOKEN":
-          return {
-            ...prevState,
-            Auth: action.stat,
-          };
-        case "SIGN_IN":
-          return {
-            ...prevState,
-            Auth: true,
-          };
-        case "SIGN_OUT":
-          return {
-            ...prevState,
-            Auth: false,
-          };
-      }
-    },
+  const [state, dispatch] = React.useReducer(member,
     {
       Auth: false,
     }
   )
-
-
-  const authContext = React.useMemo(
+  const authcontext = React.useMemo(
     () => ({
       signIn: async (data) => {
-        const value = {
+        axios.post(`${link}/GB/login`, {
           id:data.id,
           password:data.pw
-        }
-        axios.post(`${link}/GB/login`, value).then(res => {
+        }).then(res => {
           if(res.data.loginSuccess === true) {
             dispatch({ type: "SIGN_IN" })
           } else {
@@ -258,21 +196,11 @@ function App({ navigation }) {
           }
         })
       },
-      signOut: async () => {
-        dispatch({type:"SIGN_OUT"});
-      },
-      register : (data) => {
-        const value = {
-          id: data.idx,
-          password: data.passwordx,
-          name: data.namex,
-          nickname : data.nicknamex
-        }
-        axios.post(`${link}/GB/register`, value)
-      },
       logout : () => {
         axios.post(`${link}/GB/logout`).then(res => {
           if(res.data.isLogout === true) {
+            dispatch({type:"RESTORE_TOKEN", stat:false})
+          } else {
             dispatch({type:"RESTORE_TOKEN", stat:false})
           }
         })
@@ -282,22 +210,20 @@ function App({ navigation }) {
   );
 
   React.useEffect(() => {
-    const bootstrapAsync = async () => {
-      axios.post(`${link}/GB/auth`).then((res) => {
-        if (res.data.isAuth === true) {
-          Custommer_name = res.data.client.name
-          dispatch({ type: "RESTORE_TOKEN", stat: true });
+    const bootstrapAsync = () => {
+      axios.post(`${link}/GB/auth`).then(res => {
+        if(res.data.isAuth === true) {
+          dispatch({ type: 'RESTORE_TOKEN', stat:true });
         } else {
-          dispatch({ type: "RESTORE_TOKEN", stat: false });
+          dispatch({ type: 'RESTORE_TOKEN', stat:false });
         }
-      });
+      })
     };
-    []
+    bootstrapAsync();
   }); //repeat code
 
-
   return (
-    <AuthContext.Provider value={authContext}>
+    <AuthContext.Provider value={authcontext}>
       <NavigationContainer>
         <Stack.Navigator initialRouteName="Details">
           {
@@ -314,63 +240,10 @@ function App({ navigation }) {
             options={{ headerShown: false }}
             />
             )}
-            {
-              <Stack.Screen
-              component={SignUp}
-              name="SignUP"
-              />
-            }
         </Stack.Navigator>
       </NavigationContainer>
       </AuthContext.Provider>
   );
 }
-
-
-const styles = StyleSheet.create({
-  tinyLogo : {
-    width: 400,
-    height: 400,
-    marginTop: -75
-  },
-  logo: {
-    fontSize:60,
-    color:"#8BCF7A",
-    fontWeight:"bold",
-    marginBottom:30,
-    marginTop:-35
-  },
-  container: {
-    flex: 1,
-    backgroundColor: "#fff",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  button: {
-    marginTop:25,
-    alignItems: 'center',
-    justifyContent: 'center',
-    height:30,
-    width:120,
-    borderRadius: 25,
-    elevation: 3,
-    backgroundColor: '#91CF81',
-  },
-  text: {
-    fontSize: 16,
-    lineHeight: 21,
-    fontWeight: 'bold',
-    letterSpacing: 0.25,
-    color: 'white',
-  },
-  input: {
-    height: 40,
-    width: 300,
-    backgroundColor:"#ECECEC",
-    marginBottom:10,
-    padding: 10,
-    borderRadius: 20,
-  },
-});
 
 export default App;
